@@ -1,0 +1,27 @@
+# PyTorch (CUDA 12.1)
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# Transformers 및 관련 라이브러리
+transformers>=4.30.0
+accelerate>=0.20.0
+peft>=0.4.0
+bitsandbytes>=0.41.0
+
+# 데이터 처리
+pandas>=1.5.0
+numpy>=1.23.0
+scikit-learn>=1.2.0
+
+# 유틸리티
+tqdm>=4.65.0
+datasets>=2.12.0
+
+# 시각화 (선택)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# 한국어 NLP (선택)
+soynlp>=0.0.493
+konlpy>=0.6.0

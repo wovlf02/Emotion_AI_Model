@@ -1,0 +1,38 @@
+{
+  "strategy": "continue-from-kcelectra",
+  "n_models": 2,
+  "final_metrics": {
+    "f1_macro": 0.8180322354500666,
+    "f1_micro": 0.8108366533864542,
+    "exact_match": 0.7463205780037463,
+    "hamming_accuracy": 0.9647072815389647
+  },
+  "optimal_weights": [
+    0.49907682061514674,
+    0.5009231793848532
+  ],
+  "optimal_thresholds": [
+    0.5,
+    0.5,
+    0.53,
+    0.29000000000000004,
+    0.5,
+    0.5,
+    0.39,
+    0.5,
+    0.45
+  ],
+  "elapsed_hours": 3.2789912764231364,
+  "models_used": [
+    {
+      "name": "kcelectra",
+      "role": "슬랭/욕설 전문가",
+      "weight": 0.49907682061514674
+    },
+    {
+      "name": "soongsil",
+      "role": "안정적 베이스라인",
+      "weight": 0.5009231793848532
+    }
+  ]
+}

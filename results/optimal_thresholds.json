@@ -1,0 +1,28 @@
+{
+  "optimal_thresholds": [
+    0.59,
+    0.51,
+    0.36,
+    0.34,
+    0.34,
+    0.56,
+    0.36,
+    0.38,
+    0.40
+  ],
+  "threshold_dict": {
+    "여성/가족": 0.59,
+    "남성": 0.51,
+    "성소수자": 0.36,
+    "인종/국적": 0.34,
+    "연령": 0.34,
+    "지역": 0.56,
+    "종교": 0.36,
+    "기타 혐오": 0.38,
+    "악플/욕설": 0.40
+  },
+  "val_f1_macro": 0.8291,
+  "method": "class_wise_optimization",
+  "test_hamming_accuracy": 0.9672,
+  "note": "Best performance achieved with these thresholds"
+}

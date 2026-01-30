@@ -1,0 +1,20 @@
+{
+  "model_name": "roberta_base",
+  "model_hf_name": "klue/roberta-base",
+  "role": "균형잡힌 범용 모델",
+  "training_mode": "full_finetuning",
+  "final_metrics": {
+    "f1_macro": 0.783845633028291,
+    "f1_micro": 0.7662186825949893,
+    "exact_match": 0.7072518062617072,
+    "hamming_accuracy": 0.9581066214729581
+  },
+  "elapsed_hours": 0.8132158668173683,
+  "hyperparameters": {
+    "batch_size": 32,
+    "learning_rate": 2e-05,
+    "max_epochs": 80,
+    "early_stopping_patience": 10,
+    "pos_weight": 2.0
+  }
+}
