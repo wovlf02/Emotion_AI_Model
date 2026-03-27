@@ -57,7 +57,7 @@ def load_model_and_predict(model_config: dict, test_df: pd.DataFrame, label_colu
     )
 
     # 가중치 로드
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     model = model.to(device)
     model.eval()
 

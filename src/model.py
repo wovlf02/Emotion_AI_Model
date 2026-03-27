@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 from transformers import (
     AutoModel, 
-    AutoConfig,
     BitsAndBytesConfig
 )
 from peft import (
@@ -16,7 +15,7 @@ from peft import (
     TaskType,
     prepare_model_for_kbit_training
 )
-from typing import Dict, Optional
+from typing import Optional
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -108,7 +107,7 @@ class MultiLabelClassifier(nn.Module):
         input_ids: torch.Tensor,
         attention_mask: torch.Tensor,
         labels: Optional[torch.Tensor] = None
-    ) -> Dict[str, torch.Tensor]:
+    ) -> dict[str, torch.Tensor]:
         """
         Args:
             input_ids: 토큰 ID (batch_size, seq_len)
@@ -281,7 +280,7 @@ class HybridEnsemble:
             load_path = os.path.join(load_dir, f"{name}.pt")
             
             if os.path.exists(load_path):
-                model.load_state_dict(torch.load(load_path, map_location=self.device))
+                model.load_state_dict(torch.load(load_path, map_location=self.device, weights_only=True))
                 logger.info(f"✓ {name} 로드: {load_path}")
             else:
                 logger.warning(f"⚠️ {name} 파일을 찾을 수 없습니다: {load_path}")

@@ -6,7 +6,6 @@ TSV 파일 읽기 및 전처리
 import os
 import pandas as pd
 import logging
-from typing import Tuple
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ class UnsmileDataLoader:
             '악플/욕설'
         ]
     
-    def load_raw_data(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def load_raw_data(self) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """원본 TSV 파일 로드"""
         logger.info("📂 원본 데이터 로딩 중...")
         
@@ -87,7 +86,7 @@ class UnsmileDataLoader:
         logger.info(f"  저장 경로: {self.processed_dir}")
         logger.info("="*80 + "\n")
     
-    def load_processed_data(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    def load_processed_data(self) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """전처리된 데이터 로드"""
         train_path = os.path.join(self.processed_dir, "train.csv")
         val_path = os.path.join(self.processed_dir, "val.csv")

@@ -5,7 +5,6 @@ UnSmile 데이터셋 클래스
 
 import torch
 from torch.utils.data import Dataset
-from typing import Dict, List
 import pandas as pd
 
 
@@ -14,7 +13,7 @@ class UnsmileDataset(Dataset):
     
     def __init__(
         self,
-        texts: List[str],
+        texts: list[str],
         labels: torch.Tensor,
         tokenizer,
         max_length: int = 128
@@ -34,7 +33,7 @@ class UnsmileDataset(Dataset):
     def __len__(self) -> int:
         return len(self.texts)
     
-    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+    def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
         text = str(self.texts[idx])
         label = self.labels[idx]
         
@@ -61,7 +60,7 @@ def create_dataloaders(
     val_df: pd.DataFrame,
     test_df: pd.DataFrame,
     tokenizer,
-    label_columns: List[str],
+    label_columns: list[str],
     batch_size: int = 16,
     max_length: int = 128,
     num_workers: int = 0

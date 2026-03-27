@@ -11,7 +11,7 @@ import json
 import logging
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from sklearn.metrics import f1_score, accuracy_score, hamming_loss, classification_report
+from sklearn.metrics import f1_score, accuracy_score, hamming_loss
 
 from data_loader import UnsmileDataLoader
 from dataset import create_dataloaders
@@ -58,7 +58,7 @@ def load_model_and_predict(model_config: dict, test_df: pd.DataFrame, label_colu
     )
 
     # 가중치 로드
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
     model = model.to(device)
     model.eval()
 

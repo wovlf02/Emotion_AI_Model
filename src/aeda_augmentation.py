@@ -6,7 +6,6 @@ AEDA (Adaptive Easier Data Augmentation) 구현
 import random
 import pandas as pd
 import numpy as np
-from typing import List, Tuple
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -42,7 +41,7 @@ class AEDAAugmenter:
         
         return ' '.join(augmented_words)
     
-    def augment_batch(self, texts: List[str], num_aug: int = 1) -> List[str]:
+    def augment_batch(self, texts: list[str], num_aug: int = 1) -> list[str]:
         """배치 증강"""
         augmented_texts = []
         for text in texts:
@@ -53,7 +52,7 @@ class AEDAAugmenter:
 
 def augment_minority_classes(
     train_df: pd.DataFrame,
-    label_columns: List[str],
+    label_columns: list[str],
     target_size: int = 2500,  # 2000 → 2500으로 적절히 조정
     punc_ratio: float = 0.4,
     augment_all: bool = False  # True → False로 변경
