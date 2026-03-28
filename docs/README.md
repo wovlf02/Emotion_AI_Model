@@ -27,6 +27,7 @@
 | 10 | [Phase2_구현명세서.md](10_Phase2_구현명세서.md) | 8개 모듈 구현 설계, 5×5 K-Fold, Stacking, Self-Training, ECN, TTA |
 | 11 | [전처리_상세설계.md](11_전처리_상세설계.md) | 정밀 전처리 파이프라인, 고급 증강(BT/MLM/Adversarial), 품질 보증 |
 | 12 | [앙상블_심층설계.md](12_앙상블_심층설계.md) | 3-Level Stacking 아키텍처, Meta-Learner, Specialist, TTA, Calibration |
+| 13 | [실행가이드.md](13_실행가이드.md) | 환경 구성부터 추론까지 단계별 실행 가이드, 모듈 역할 설명 |
 
 ---
 
