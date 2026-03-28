@@ -122,11 +122,12 @@
 
 | 분류 | 기술 |
 |------|------|
-| **언어** | Python 3.11.9 |
-| **딥러닝** | PyTorch 2.0+, Transformers 4.30+ |
-| **사전학습 모델** | KcELECTRA, SoongsilBERT, KLUE-RoBERTa |
+| **언어** | Python 3.14.3 |
+| **딥러닝** | PyTorch 2.6+, Transformers 4.48+ |
+| **사전학습 모델** | KcELECTRA, KcBERT, KLUE-BERT, KLUE-RoBERTa, KR-ELECTRA |
 | **데이터 처리** | Pandas, NumPy, Scikit-learn |
-| **데이터 증강** | AEDA (Adaptive Easier Data Augmentation) |
+| **앙상블** | LightGBM, Optuna, 3-Level Stacking |
+| **데이터 증강** | AEDA, Self-Training, Curriculum Learning |
 
 ---
 

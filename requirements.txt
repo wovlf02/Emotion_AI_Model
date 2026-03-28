@@ -16,6 +16,10 @@ numpy>=2.1.0
 scikit-learn>=1.6.0
 scipy>=1.14.0
 
+# 앙상블 / Meta-Learner / ECN
+lightgbm>=4.5.0
+optuna>=4.1.0
+
 # 유틸리티
 tqdm>=4.67.0
 datasets>=3.2.0

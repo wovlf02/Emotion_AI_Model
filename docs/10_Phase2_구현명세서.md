@@ -16,23 +16,32 @@
 구현 대상 모듈 구조 (6-Stage 아키텍처)
 ═══════════════════════════════════════════════════════════════════
   src/
-  ├── external_data_merger.py    ← [신규] 외부 데이터셋 병합기 (7개 데이터셋)
-  ├── preprocessing.py           ← [신규] 전처리 파이프라인 (정규화/정제)
-  ├── advanced_augmentor.py      ← [신규] 고급 증강 (BT/MLM/Adversarial)
-  ├── stacking_meta_learner.py   ← [신규] Stacking 앙상블 (LightGBM/MLP/Ridge)
-  ├── self_training.py           ← [신규] Self-Training (3라운드 pseudo-labeling)
-  ├── error_correction.py        ← [신규] ECN (오류 보정 네트워크)
-  ├── rule_system.py             ← [신규] 룰 기반 보정 시스템
-  └── inference_optimizer.py     ← [신규] TTA + Calibration + Bayesian Threshold
-
-  run_train_phase2.py            ← [신규] Phase 2 통합 학습 파이프라인
-  verify_datasets.py             ← [신규] 데이터셋 사전 검증 스크립트
-═══════════════════════════════════════════════════════════════════
-  기존 모듈 (수정 필요):
-  src/model.py                   ← HybridEnsemble → 5-모델 × 5-Fold 확장
-  src/data_loader.py             ← Phase 2 데이터 로더 + K-Fold 분할
-  src/train.py                   ← AsymmetricLoss + AWP + R-Drop + Label Smoothing
-  src/optimize_thresholds.py     ← Bayesian Threshold (Optuna) 통합
+  ├── data/
+  │   ├── external_data_merger.py    ← 외부 데이터셋 병합기 (7개 데이터셋)
+  │   ├── preprocessing.py           ← 전처리 파이프라인 (정규화/정제)
+  │   ├── aeda_augmentation.py       ← AEDA 데이터 증강
+  │   └── verify_datasets.py         ← 데이터셋 사전 검증 스크립트
+  │
+  ├── models/
+  │   ├── model.py                   ← MultiLabelClassifier (5-모델 × 5-Fold)
+  │   ├── asymmetric_loss.py         ← Asymmetric Loss
+  │   └── ensemble.py                ← Stacking Meta-Learner (LightGBM/MLP/Ridge)
+  │
+  ├── training/
+  │   ├── trainer.py                 ← K-Fold 학습 + AWP + R-Drop
+  │   ├── optimize_thresholds.py     ← Bayesian Threshold (Optuna)
+  │   ├── curriculum_learning.py     ← Curriculum Learning 스케줄러
+  │   ├── hard_negative_mining.py    ← Hard Negative Mining + Specialist
+  │   └── self_training.py           ← Self-Training (3라운드 pseudo-labeling)
+  │
+  ├── inference/
+  │   ├── inference.py               ← TTA + Temperature Scaling + 추론 엔진
+  │   ├── rule_system.py             ← 룰 기반 보정 시스템
+  │   └── error_correction.py        ← ECN (오류 보정 네트워크)
+  │
+  ├── main.py                        ← Phase 2 통합 6-Stage 파이프라인
+  ├── config.py                      ← 전역 설정 (Config dataclasses)
+  └── utils.py                       ← 유틸리티 (시드, 로깅, 체크포인트)
 ═══════════════════════════════════════════════════════════════════
 ```
 
@@ -1289,21 +1298,22 @@ python -c "from datasets import load_dataset; \
 
 ## 14. 구현 우선순위 체크리스트
 
-| 순서 | 구현 항목 | 의존성 | Stage |
-|------|----------|--------|-------|
-| 1 | `verify_datasets.py` 데이터셋 검증 | 없음 | 사전 |
-| 2 | `src/preprocessing.py` 전처리 파이프라인 | 없음 | A |
-| 3 | `src/external_data_merger.py` 데이터 병합 | #1, #2 | A |
-| 4 | `src/advanced_augmentor.py` 고급 증강 | #3 | A |
-| 5 | `src/model.py` 5-모델 K-Fold 확장 | 없음 | B |
-| 6 | `src/train.py` AWP + R-Drop + Label Smoothing | #5 | B/C |
-| 7 | `src/stacking_meta_learner.py` Stacking | #5, #6 학습 완료 | B |
-| 8 | `src/self_training.py` Self-Training | #7 완료 | D |
-| 9 | `src/rule_system.py` 룰 시스템 | 없음 | E |
-| 10 | `src/error_correction.py` ECN | #7, #9 완료 | E |
-| 11 | `src/inference_optimizer.py` TTA+Calibration | #10 완료 | F |
-| 12 | `run_train_phase2.py` 통합 파이프라인 | 전체 | 통합 |
-| 13 | 최종 평가 + 튜닝 | #12 완료 | 검증 |
+| 순서 | 구현 항목 | 의존성 | Stage | 상태 |
+|------|----------|--------|-------|------|
+| 1 | `src/data/verify_datasets.py` 데이터셋 검증 | 없음 | 사전 | ✅ |
+| 2 | `src/data/preprocessing.py` 전처리 파이프라인 | 없음 | A | ✅ |
+| 3 | `src/data/external_data_merger.py` 데이터 병합 | #1, #2 | A | ✅ |
+| 4 | `src/data/aeda_augmentation.py` AEDA 증강 | #3 | A | ✅ |
+| 5 | `src/models/model.py` 5-모델 K-Fold 확장 | 없음 | B | ✅ |
+| 6 | `src/training/trainer.py` AWP + R-Drop + Label Smoothing | #5 | B/C | ✅ |
+| 7 | `src/models/ensemble.py` Stacking Meta-Learner | #5, #6 학습 완료 | B | ✅ |
+| 8 | `src/training/self_training.py` Self-Training | #7 완료 | D | ✅ |
+| 9 | `src/inference/rule_system.py` 룰 시스템 | 없음 | E | ✅ |
+| 10 | `src/inference/error_correction.py` ECN | #7, #9 완료 | E | ✅ |
+| 11 | `src/inference/inference.py` TTA+Calibration | #10 완료 | F | ✅ |
+| 12 | `src/main.py` 통합 6-Stage 파이프라인 | 전체 | 통합 | ✅ |
+| - | `src/training/curriculum_learning.py` | #5 | B | ✅ |
+| - | `src/training/hard_negative_mining.py` | #6 | C | ✅ |
 
 > **총 구현 소요**: 코드 작성 ~30시간 + 학습 ~80~120시간 (GPU) = **약 110~150시간**
 

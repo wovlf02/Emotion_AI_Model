@@ -10,20 +10,40 @@
 
 ```
 src/
-├── model.py               # 모델 아키텍처
-├── train.py               # 학습 로직
-├── inference.py           # 추론 로직
-├── final_inference.py     # 최종 평가
-├── optimize_thresholds.py # 임계값 최적화
-├── data_loader.py         # 데이터 로딩
-├── dataset.py             # PyTorch Dataset
-├── aeda_augmentation.py   # 데이터 증강
-└── asymmetric_loss.py     # 손실 함수
+├── main.py                         # 6-Stage 파이프라인 진입점
+├── config.py                       # 전역 설정 (Config dataclasses)
+├── utils.py                        # 유틸리티 (시드, 로깅, 체크포인트)
+│
+├── data/                           # 데이터 처리
+│   ├── data_loader.py              # UnSmile 데이터 로딩 / K-Fold 분할
+│   ├── dataset.py                  # PyTorch Dataset (HateSpeechDataset)
+│   ├── external_data_merger.py     # 7개 외부 데이터셋 병합
+│   ├── preprocessing.py            # 텍스트 정규화/정제 파이프라인
+│   ├── aeda_augmentation.py        # AEDA 데이터 증강
+│   └── verify_datasets.py          # 데이터셋 사전 검증
+│
+├── models/                         # 모델 아키텍처
+│   ├── model.py                    # MultiLabelClassifier (AWP, Multi-Sample Dropout)
+│   ├── asymmetric_loss.py          # Asymmetric Loss
+│   └── ensemble.py                 # Stacking Meta-Learner (LightGBM+MLP+Ridge)
+│
+├── training/                       # 학습 파이프라인
+│   ├── trainer.py                  # K-Fold 학습 + AWP + R-Drop
+│   ├── metrics.py                  # 평가 메트릭 (F1, Hamming Acc 등)
+│   ├── optimize_thresholds.py      # Bayesian/Grid 임계값 최적화
+│   ├── curriculum_learning.py      # Curriculum Learning 스케줄러
+│   ├── hard_negative_mining.py     # Hard Negative Mining + Specialist
+│   └── self_training.py            # Self-Training (3-Round Pseudo-Labeling)
+│
+└── inference/                      # 추론 파이프라인
+    ├── inference.py                # TTA + Temperature Scaling + 추론 엔진
+    ├── rule_system.py              # 키워드 힌트 + 후처리 보정
+    └── error_correction.py         # Error Correction Network (LightGBM)
 ```
 
 ---
 
-## 2. model.py
+## 2. models/model.py
 
 ### 2.1 MultiLabelClassifier
 
@@ -52,7 +72,7 @@ class MultiLabelClassifier(nn.Module):
 **사용 예시:**
 
 ```python
-from model import MultiLabelClassifier
+from src.models.model import MultiLabelClassifier
 
 # 모델 생성
 model = MultiLabelClassifier(
@@ -106,7 +126,7 @@ def create_model(
 
 ---
 
-## 3. train.py
+## 3. training/trainer.py
 
 ### 3.1 Trainer
 
@@ -204,7 +224,7 @@ def main() -> dict:
 
 ---
 
-## 4. data_loader.py
+## 4. data/data_loader.py
 
 ### 4.1 UnsmileDataLoader
 
@@ -234,7 +254,7 @@ class UnsmileDataLoader:
 **사용 예시:**
 
 ```python
-from data_loader import UnsmileDataLoader
+from src.data.data_loader import UnsmileDataLoader
 
 # 데이터 로더 생성
 loader = UnsmileDataLoader("./data")
@@ -248,7 +268,7 @@ train_df, val_df, test_df = loader.load_processed_data()
 
 ---
 
-## 5. dataset.py
+## 5. data/dataset.py
 
 ### 5.1 UnsmileDataset
 
@@ -296,7 +316,7 @@ def create_dataloaders(
 
 ---
 
-## 6. aeda_augmentation.py
+## 6. data/aeda_augmentation.py
 
 ### 6.1 AEDAAugmenter
 
@@ -322,7 +342,7 @@ class AEDAAugmenter:
 **사용 예시:**
 
 ```python
-from aeda_augmentation import AEDAAugmenter
+from src.data.aeda_augmentation import AEDAAugmenter
 
 augmenter = AEDAAugmenter(punc_ratio=0.3)
 
@@ -348,7 +368,7 @@ def augment_minority_classes(
 
 ---
 
-## 7. asymmetric_loss.py
+## 7. models/asymmetric_loss.py
 
 ### 7.1 AsymmetricLoss
 
@@ -371,7 +391,7 @@ class AsymmetricLoss(nn.Module):
 **사용 예시:**
 
 ```python
-from asymmetric_loss import AsymmetricLoss
+from src.models.asymmetric_loss import AsymmetricLoss
 
 criterion = AsymmetricLoss(
     gamma_neg=4.0,
@@ -393,7 +413,7 @@ class AsymmetricLossOptimized(nn.Module):
 
 ---
 
-## 8. inference.py
+## 8. inference/inference.py
 
 ### 8.1 load_model_and_predict
 
@@ -446,7 +466,7 @@ def evaluate_predictions(
 
 ---
 
-## 9. optimize_thresholds.py
+## 9. training/optimize_thresholds.py
 
 ### 9.1 load_model_and_predict_val
 

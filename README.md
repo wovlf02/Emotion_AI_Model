@@ -2,9 +2,9 @@
 
 <div align="center">
 
-[![Python](https://img.shields.io/badge/Python-3.11.9-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Hugging Face](https://img.shields.io/badge/🤗_Transformers-4.30+-FFD21E?style=for-the-badge)](https://huggingface.co/)
+[![Python](https://img.shields.io/badge/Python-3.14.3-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.6+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Hugging Face](https://img.shields.io/badge/🤗_Transformers-4.48+-FFD21E?style=for-the-badge)](https://huggingface.co/)
 [![License](https://img.shields.io/badge/License-Portfolio-red?style=for-the-badge)](LICENSE)
 
 **3-모델 하이브리드 앙상블을 통한 다중 라벨 혐오 표현 분류 시스템**
@@ -12,6 +12,10 @@
 [📖 문서](docs/README.md) • [🚀 빠른 시작](#-빠른-시작) • [📊 성능](#-주요-성과) • [💾 모델 다운로드](#-사전-학습-모델-다운로드)
 
 </div>
+
+---
+
+> **개발 기간:** 2025/01 &nbsp;|&nbsp; **팀 구성:** 1인 &nbsp;|&nbsp; **담당:** 데이터 분석, 모델 설계, 학습 파이프라인 구축, 앙상블 최적화, 문서화
 
 ---
 
@@ -24,6 +28,7 @@
 - [빠른 시작](#-빠른-시작)
 - [프로젝트 구조](#-프로젝트-구조)
 - [모델 아키텍처](#-모델-아키텍처)
+- [기술 구현 상세](#-기술-구현-상세)
 - [사용 방법](#-사용-방법)
 - [실험 결과](#-실험-결과)
 - [기술 스택](#-기술-스택)
@@ -106,7 +111,7 @@
 
 | 항목 | 요구사항 |
 |------|----------|
-| **Python** | 3.11.9 (권장) |
+| **Python** | 3.14.3 |
 | **CUDA** | 11.8 이상 (GPU 사용 시) |
 | **RAM** | 16GB 이상 권장 |
 | **GPU VRAM** | 12GB 이상 권장 |
@@ -170,14 +175,14 @@ data/raw/
 ### 5. 데이터 전처리
 
 ```bash
-python -c "from src.data_loader import UnsmileDataLoader; loader = UnsmileDataLoader('./data'); loader.prepare_dataset()"
+python -c "from src.data.data_loader import load_unsmile_all; print(load_unsmile_all().shape)"
 ```
 
 ### 6. 모델 학습 또는 다운로드
 
-**옵션 A: 직접 학습** (약 15시간 소요)
+**옵션 A: Phase 2 전체 파이프라인** (6-Stage 자동 실행)
 ```bash
-python run_train.py
+python -m src.main
 ```
 
 **옵션 B: 사전 학습 모델 다운로드** (권장)
@@ -186,8 +191,11 @@ python run_train.py
 
 ### 7. 추론 실행
 
-```bash
-python run_inference.py
+```python
+from src.inference import InferenceEngine
+engine = InferenceEngine(checkpoint_paths=[...], thresholds={...})
+result = engine.predict_single("분석할 텍스트")
+print(result)
 ```
 
 ---
@@ -196,51 +204,58 @@ python run_inference.py
 
 ```
 Emotion_AI_Model/
-├── 📄 README.md                    # 프로젝트 소개 (본 문서)
-├── 📄 emotion_model.md             # 프로젝트 상세 문서 (포트폴리오용)
-├── 📄 LICENSE                      # MIT 라이선스
-├── 📄 requirements.txt             # Python 의존성
+├── 📄 README.md                        # 프로젝트 소개 (본 문서)
+├── 📄 LICENSE                          # Portfolio Project License
+├── 📄 commit-message.md                # 커밋 메시지 가이드
+├── 📄 requirements.txt                 # Python 의존성
 │
-├── 🚀 run_train.py                 # 학습 실행 스크립트
-├── 🚀 run_inference.py             # 추론 실행 스크립트
-├── 🚀 run_final_inference.py       # 최종 평가 스크립트
-├── 🚀 run_optimize_thresholds.py   # 임계값 최적화 스크립트
+├── 📂 src/                             # 소스 코드 패키지
+│   ├── __init__.py
+│   ├── config.py                       # 전역 설정 (경로, 라벨, 하이퍼파라미터)
+│   ├── main.py                         # Phase 2 6-Stage 파이프라인 진입점
+│   ├── utils.py                        # 유틸리티 (시드 고정, 로깅, 체크포인트)
+│   │
+│   ├── 📂 data/                        # 데이터 처리
+│   │   ├── __init__.py
+│   │   ├── data_loader.py              # UnSmile 데이터 로딩/K-Fold 분할
+│   │   ├── dataset.py                  # PyTorch Dataset 클래스
+│   │   ├── external_data_merger.py     # 7개 외부 데이터셋 병합
+│   │   ├── preprocessing.py            # 텍스트 정규화/정제 파이프라인
+│   │   ├── aeda_augmentation.py        # AEDA 데이터 증강
+│   │   └── verify_datasets.py          # 데이터셋 검증
+│   │
+│   ├── 📂 models/                      # 모델 아키텍처
+│   │   ├── __init__.py
+│   │   ├── model.py                    # MultiLabelClassifier, AWP, Multi-Sample Dropout
+│   │   ├── asymmetric_loss.py          # Asymmetric Loss (비대칭 손실 함수)
+│   │   └── ensemble.py                 # Stacking Meta-Learner (LightGBM+MLP+Ridge)
+│   │
+│   ├── 📂 training/                    # 학습 파이프라인
+│   │   ├── __init__.py
+│   │   ├── trainer.py                  # K-Fold 학습 + AWP + R-Drop
+│   │   ├── optimize_thresholds.py      # Bayesian/Grid 임계값 최적화
+│   │   ├── metrics.py                  # 평가 메트릭 (F1, Hamming Acc 등)
+│   │   ├── curriculum_learning.py      # Curriculum Learning 스케줄러
+│   │   ├── hard_negative_mining.py     # Hard Negative Mining + Specialist
+│   │   └── self_training.py            # Self-Training (3-Round Pseudo-Labeling)
+│   │
+│   └── 📂 inference/                   # 추론 파이프라인
+│       ├── __init__.py
+│       ├── inference.py                # TTA + Temperature Scaling + 추론 엔진
+│       ├── rule_system.py              # 키워드 힌트 + 후처리 보정
+│       └── error_correction.py         # Error Correction Network (LightGBM)
 │
-├── 📂 src/                         # 소스 코드 모듈
-│   ├── train.py                    # 메인 학습 로직
-│   ├── inference.py                # 추론 로직
-│   ├── final_inference.py          # 최종 평가 로직
-│   ├── optimize_thresholds.py      # 임계값 최적화
-│   ├── data_loader.py              # 데이터 로딩/전처리
-│   ├── dataset.py                  # PyTorch Dataset
-│   ├── model.py                    # 모델 아키텍처
-│   ├── aeda_augmentation.py        # AEDA 데이터 증강
-│   └── asymmetric_loss.py          # 비대칭 손실 함수
+├── 📂 data/                            # 데이터
+│   ├── raw/                            # 원본 TSV 데이터
+│   └── processed/                      # 전처리된 CSV 데이터
 │
-├── 📂 data/                        # 데이터
-│   ├── raw/                        # 원본 TSV 데이터
-│   └── processed/                  # 전처리된 CSV 데이터
+├── 📂 results/                         # 실험 결과
 │
-├── 📂 models/                      # 학습된 모델 가중치 (.pt)
-│   ├── kcelectra.pt
-│   ├── soongsil.pt
-│   └── roberta_base.pt
-│
-├── 📂 results/                     # 실험 결과
-│   ├── final_results.json
-│   ├── optimal_thresholds.json
-│   └── final_test_predictions.csv
-│
-└── 📂 docs/                        # 기술 문서
-    ├── README.md                   # 문서 가이드
-    ├── 01_프로젝트_개요.md
-    ├── 02_데이터_분석.md
-    ├── 03_모델_아키텍처.md
-    ├── 04_학습_전략.md
-    ├── 05_실험_결과.md
-    ├── 06_API_레퍼런스.md
-    ├── 07_트러블슈팅.md
-    └── presentation/               # 발표 자료
+└── 📂 docs/                            # 기술 문서
+    ├── README.md                       # 문서 가이드
+    ├── 01~07: Phase 1 문서             # 프로젝트 개요 ~ 트러블슈팅
+    ├── 08~12: Phase 2 문서             # 성능개선 로드맵 ~ 앙상블 심층설계
+    └── presentation/                   # 발표 자료
 ```
 
 ---
@@ -294,22 +309,82 @@ Emotion_AI_Model/
 
 ---
 
+## 🔬 기술 구현 상세
+
+### 데이터 처리 및 증강
+
+- **UnSmile 데이터셋**: Smilegate AI 제공, 전문가 레이블링, 약 18,000 샘플
+- **9개 혐오 카테고리 다중 라벨 분류**: 하나의 문장에 여러 레이블 동시 적용 가능
+- **AEDA 데이터 증강**: 소수 클래스(연령 4%, 기타 혐오 3.7%) 2~3배 오버샘플링
+- **클래스 불균형 해소**: 다수:소수 = 6.5:1 불균형 문제 해결
+- **최소한의 텍스트 전처리**: 난독화 표현 보존 (특수문자 무조건 제거 X)
+- **토크나이저 모델별 적용**: KcELECTRA BPE, SoongsilBERT WordPiece, RoBERTa BPE
+- **max_length 128 설정**: 95% 이상 텍스트 커버리지 확보
+
+### 분류기 헤드 아키텍처
+
+```
+[CLS] 토큰 임베딩 (768차원)
+    → Dropout1 (0.3) → Dropout2 (0.15)   # 2-Layer Dropout 강화
+    → Linear (768 → 9)                    # Xavier 초기화 적용
+    → Sigmoid (다중 라벨 출력)
+```
+
+- **Multi-Sample Dropout**: K=5 샘플링으로 예측 평균화, 과적합 방지 및 학습 안정성 강화
+- **Xavier 초기화**: 분류기 가중치 안정적 초기화
+- **모델 저장 형식**: state_dict 기반 .pt 파일
+
+### 학습 전략 및 최적화
+
+| 기술 | 설정 | 설명 |
+|------|------|------|
+| **손실 함수** | BCEWithLogitsLoss | Sigmoid 내장, pos_weight로 소수 클래스 최대 10배 가중 |
+| **비대칭 손실** | AsymmetricLoss | gamma_neg=4.0, gamma_pos=0.5, 선택적 label smoothing |
+| **옵티마이저** | AdamW | lr=2e-5, weight_decay=0.01, Decoupled Weight Decay |
+| **스케줄러** | Cosine Annealing with Warmup | 500 warmup steps (전체의 5%) |
+| **Early Stopping** | patience=12 | min_delta=0.001, 약 30% 학습 시간 절약 |
+| **Dropout** | 0.3 | 분류 헤드 과적합 방지 |
+| **Gradient Clipping** | max_norm=1.0 | 그래디언트 폭발 방지 |
+| **AWP** | adv_lr=1e-4, adv_eps=1e-2 | Adversarial Weight Perturbation |
+| **R-Drop** | KL Divergence | 동일 입력 2회 forward, 출력 분포 일관성 강화 |
+
+### 클래스별 임계값 최적화
+
+- **Grid Search**: 0.01~0.99 범위에서 0.01 간격으로 최적값 탐색
+- **Bayesian Optimization**: Optuna 기반 2,000 trials로 F1-Macro 최대화
+- **클래스별 맞춤 임계값**: 소수 클래스 낮은 임계값(인종/국적 0.34)으로 미탐지 방지
+- **최적화 효과**: F1-Macro +3.8%p 향상
+
+### 추론 파이프라인
+
+- **TTA (Test-Time Augmentation)**: 5가지 텍스트 변형(원문, 구두점 제거, 공백 정규화 등) 예측 평균
+- **Temperature Scaling**: 클래스별 온도 파라미터로 예측 확률 보정
+- **규칙 기반 보정**: 키워드 힌트(강약 가중치) + 교차 강화 규칙 + 자기 비하/음식 컨텍스트 억제
+- **최종 블렌딩**: 60% Meta-Learner + 20% Best Single + 10% Keyword + 10% ECN
+
+### Phase 2 확장 (5-모델 × 5-Fold K-Fold)
+
+| 모델 | Hugging Face ID | 역할 |
+|------|-----------------|------|
+| KcELECTRA-Base | `beomi/KcELECTRA-base` | 인터넷 언어 특화 |
+| KcBERT-Base | `beomi/kcbert-base` | 한국어 커뮤니티 특화 |
+| KLUE-BERT-Base | `klue/bert-base` | KLUE 벤치마크 기반 |
+| KLUE-RoBERTa-Base | `klue/roberta-base` | 문맥 이해 전문가 |
+| KR-ELECTRA | `snunlp/KR-ELECTRA-discriminator` | 한국어 판별 모델 |
+
+- **25개 Base 모델** (5 모델 × 5 Fold) → **3-Level Stacking** (Meta-Learner: LightGBM + MLP + Ridge)
+- **외부 데이터 14배 확장**: 15K → ~204K (K-MHaS, KOLD, BEEP!, APEACH 등 7개 데이터셋)
+- **Meta-Features 294차원**: 225-dim 기본 예측 + 45-dim 통계 + 9-dim 합의도 + 5-dim 텍스트 + 9-dim 키워드 + 1-dim 엔트로피
+
+---
+
 ## 📖 사용 방법
 
 ### 전체 학습 파이프라인
 
 ```bash
-# 1. 모델 학습 (약 15시간 소요)
-python run_train.py
-
-# 2. 임계값 최적화
-python run_optimize_thresholds.py
-
-# 3. 최종 평가
-python run_final_inference.py
-
-# 4. 추론
-python run_inference.py
+# Phase 2 6-Stage 파이프라인 실행 (Stage A~F 자동 진행)
+python -m src.main
 ```
 
 ### Python 코드에서 사용
@@ -317,11 +392,11 @@ python run_inference.py
 ```python
 import torch
 from transformers import AutoTokenizer
-from src.model import create_model
+from src.models.model import MultiLabelClassifier
 
 # 모델 로드
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model = create_model("beomi/KcELECTRA-base", num_labels=9)
+model = MultiLabelClassifier("beomi/KcELECTRA-base", num_labels=9)
 model.load_state_dict(torch.load("models/kcelectra.pt", map_location=device))
 model.to(device)
 model.eval()
@@ -396,35 +471,45 @@ optimal_thresholds = {
 
 ### 핵심 기술
 
-| 분류 | 기술 | 버전 |
-|------|------|------|
-| **언어** | Python | 3.11.9 |
-| **딥러닝** | PyTorch | ≥2.0.0 |
-| **NLP** | Transformers | ≥4.30.0 |
-| **최적화** | Accelerate, PEFT | ≥0.20.0 |
+| 분류 | 기술 | 버전 | 설명 |
+|------|------|------|------|
+| **언어** | Python | 3.14.3 | 프로그래밍 언어 |
+| **딥러닝** | PyTorch | ≥2.6.0 | 딥러닝 프레임워크 |
+| **NLP** | Transformers | ≥4.48.0 | Hugging Face 사전학습 모델 |
+| **최적화** | Accelerate | ≥1.2.0 | 분산 학습 지원 |
+| | PEFT | ≥0.14.0 | LoRA/QLoRA 파인튜닝 |
+| | BitsAndBytes | ≥0.45.0 | 4비트 양자화 |
+
+### 데이터 처리
+
+| 라이브러리 | 버전 | 용도 |
+|------------|------|------|
+| Pandas | ≥2.2.0 | 데이터프레임 처리 |
+| NumPy | ≥2.1.0 | 수치 연산 |
+| Scikit-learn | ≥1.6.0 | 평가 메트릭, K-Fold, 최적화 |
+| SciPy | ≥1.14.0 | 수치 최적화 |
+| Datasets | ≥3.2.0 | HuggingFace 데이터셋 로딩 |
+| tqdm | ≥4.67.0 | 진행률 표시 |
+| Matplotlib | ≥3.10.0 | 차트 시각화 |
+| Seaborn | ≥0.13.0 | 통계 시각화 |
 
 ### 사전학습 모델
 
 | 모델 | Hugging Face | 용도 |
 |------|--------------|------|
 | KcELECTRA-Base | `beomi/KcELECTRA-base` | 슬랭/욕설 |
-| SoongsilBERT | `snunlp/KR-SBERT-V40K-klueNLI-augSTS` | 베이스라인 |
-| KLUE-RoBERTa | `klue/roberta-base` | 문맥 이해 |
-
-### 데이터 처리
-
-| 라이브러리 | 용도 |
-|------------|------|
-| Pandas | 데이터프레임 처리 |
-| NumPy | 수치 연산 |
-| Scikit-learn | 평가 메트릭, 최적화 |
-| tqdm | 진행률 표시 |
+| KcBERT-Base | `beomi/kcbert-base` | 커뮤니티 언어 |
+| KLUE-BERT-Base | `klue/bert-base` | KLUE 기반 |
+| KLUE-RoBERTa-Base | `klue/roberta-base` | 문맥 이해 |
+| KR-ELECTRA | `snunlp/KR-ELECTRA-discriminator` | 한국어 판별 |
 
 ---
 
 ## 📚 문서
 
 상세 기술 문서는 `docs/` 폴더에서 확인할 수 있습니다.
+
+### Phase 1 문서
 
 | 문서 | 설명 |
 |------|------|
@@ -436,7 +521,20 @@ optimal_thresholds = {
 | [05_실험_결과](docs/05_실험_결과.md) | 성능 평가 및 분석 |
 | [06_API_레퍼런스](docs/06_API_레퍼런스.md) | 코드 상세 문서 |
 | [07_트러블슈팅](docs/07_트러블슈팅.md) | 문제 해결 가이드 |
-| [📊 발표 자료](docs/presentation/PRESENTATION.md) | 프레젠테이션 |
+
+### Phase 2 문서
+
+| 문서 | 설명 |
+|------|------|
+| [08_성능개선_로드맵](docs/08_성능개선_로드맵.md) | 6-Stage 개선 전략 |
+| [09_외부데이터셋_명세](docs/09_외부데이터셋_명세.md) | 7개 외부 데이터셋 상세 |
+| [10_Phase2_구현명세서](docs/10_Phase2_구현명세서.md) | Phase 2 모듈 구현 명세 |
+| [11_전처리_상세설계](docs/11_전처리_상세설계.md) | 4-Phase 전처리 파이프라인 |
+| [12_앙상블_심층설계](docs/12_앙상블_심층설계.md) | 3-Level Stacking 아키텍처 |
+
+### 발표 자료
+
+| [📊 프레젠테이션](docs/presentation/PRESENTATION.md) | 발표 슬라이드 |
 
 ---
 
@@ -469,7 +567,7 @@ models/
 3. 추론 실행:
 
 ```bash
-python run_inference.py
+python -m src.main
 ```
 
 ---
